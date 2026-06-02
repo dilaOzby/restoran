@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Kafe Yönetim</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; display: flex; height: 100vh; background: #1a1a2e; color: white; }
+
+        .sidebar {
+            width: 180px;
+            background: #16213e;
+            padding: 20px 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .sidebar h2 {
+            text-align: center;
+            padding: 20px;
+            font-size: 18px;
+            color: #e94560;
+            border-bottom: 1px solid #0f3460;
+            margin-bottom: 20px;
+        }
+        .sidebar-btn {
+            padding: 15px 20px;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: white;
+            font-size: 15px;
+            text-align: left;
+            transition: background 0.2s;
+        }
+        .sidebar-btn:hover, .sidebar-btn.active {
+            background: #0f3460;
+            border-left: 4px solid #e94560;
+        }
+
+        .main { flex: 1; padding: 30px; overflow-y: auto; }
+
+        .bolge { display: none; }
+        .bolge.active { display: block; }
+
+        .bolge h2 {
+            margin-bottom: 25px;
+            font-size: 22px;
+            color: #e94560;
+        }
+
+        .masalar-grid {
+            display: grid;
+            grid-template-columns: repeat(5, 160px);
+            gap: 20px;
+        }
+
+        .masa-kart {
+            width: 160px;
+            height: 120px;
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 18px;
+            font-weight: bold;
+            transition: transform 0.2s, box-shadow 0.2s;
+            border: none;
+            color: white;
+        }
+        .masa-kart:hover {
+            transform: scale(1.05);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.4);
+        }
+        .masa-kart.bos { background: #2ecc71; }
+        .masa-kart.dolu { background: #e74c3c; }
+
+        .masa-kart span { font-size: 13px; margin-top: 6px; opacity: 0.9; }
+
+        /* Modal */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 100;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-overlay.open { display: flex; }
+        .modal {
+            background: #16213e;
+            border-radius: 16px;
+            padding: 30px;
+            width: 320px;
+            text-align: center;
+        }
+        .modal h3 { font-size: 22px; margin-bottom: 25px; color: #e94560; }
+        .modal-btn {
+            display: block;
+            width: 100%;
+            padding: 14px;
+            margin-bottom: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 15px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .modal-btn:hover { opacity: 0.85; }
+        .btn-yesil { background: #2ecc71; color: white; }
+        .btn-mavi { background: #3498db; color: white; }
+        .btn-turuncu { background: #e67e22; color: white; }
+        .btn-kirmizi { background: #e74c3c; color: white; }
+        .btn-gri { background: #555; color: white; }
+    </style>
+</head>
+<body>
+
+<div class="sidebar">
+    <h2>☕ Kafe</h2>
+    <button class="sidebar-btn active" onclick="goster('salon')">🪑 Salon</button>
+    <button class="sidebar-btn" onclick="goster('bahce')">🌿 Bahçe</button>
+</div>
+
+<div class="main">
+    <!-- SALON -->
+    <div class="bolge active" id="salon">
+        <h2>🪑 Salon Masaları</h2>
+        <div class="masalar-grid">
+            <button class="masa-kart"
+                    th:each="masa : ${salonMasalari}"
+                    th:classappend="${masa.dolu} ? 'dolu' : 'bos'"
+                    th:onclick="'masaAc(' + ${masa.id} + ', \'' + ${masa.masaNo} + '\', ' + ${masa.dolu} + ')'"
+            >
+                <span th:text="${masa.masaNo}"></span>
+                <span th:text="${masa.dolu} ? 'Dolu' : 'Boş'"></span>
+            </button>
+        </div>
+    </div>
+
+    <!-- BAHÇE -->
+    <div class="bolge" id="bahce">
+        <h2>🌿 Bahçe Masaları</h2>
+        <div class="masalar-grid">
+            <button class="masa-kart"
+                    th:each="masa : ${bahceMasalari}"
+                    th:classappend="${masa.dolu} ? 'dolu' : 'bos'"
+                    th:onclick="'masaAc(' + ${masa.id} + ', \'' + ${masa.masaNo} + '\', ' + ${masa.dolu} + ')'"
+            >
+                <span th:text="${masa.masaNo}"></span>
+                <span th:text="${masa.dolu} ? 'Dolu' : 'Boş'"></span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modalOverlay">
+    <div class="modal">
+        <h3 id="modalBaslik">Masa</h3>
+        <form id="siparisOlusturForm" method="post">
+            <button class="modal-btn btn-yesil" type="submit">➕ Sipariş Oluştur</button>
+        </form>
+        <button class="modal-btn btn-mavi" id="siparisGitBtn" onclick="sipariseSayfaGit()">📋 Siparişi Görüntüle</button>
+        <button class="modal-btn btn-gri" onclick="modalKapat()">✖ Kapat</button>
+    </div>
+</div>
+
+<script>
+    let secilenMasaId = null;
+
+    function goster(bolge) {
+        document.querySelectorAll('.bolge').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.sidebar-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById(bolge).classList.add('active');
+        event.target.classList.add('active');
+    }
+
+    function masaAc(id, masaNo, dolu) {
+        secilenMasaId = id;
+        document.getElementById('modalBaslik').innerText = masaNo + ' Masası';
+        document.getElementById('siparisOlusturForm').action = '/masalar/' + id + '/siparis-olustur';
+
+        if (dolu) {
+            document.getElementById('siparisOlusturForm').style.display = 'none';
+            document.getElementById('siparisGitBtn').style.display = 'block';
+        } else {
+            document.getElementById('siparisOlusturForm').style.display = 'block';
+            document.getElementById('siparisGitBtn').style.display = 'none';
+        }
+
+        document.getElementById('modalOverlay').classList.add('open');
+    }
+
+    function sipariseSayfaGit() {
+        window.location.href = '/masalar/' + secilenMasaId;
+    }
+
+    function modalKapat() {
+        document.getElementById('modalOverlay').classList.remove('open');
+    }
+</script>
+
+</body>
+</html>

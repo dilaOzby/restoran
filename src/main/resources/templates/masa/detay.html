@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Masa Detay</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: Arial, sans-serif; background: #1a1a2e; color: white; display: flex; height: 100vh; }
+
+        .sol { width: 220px; background: #16213e; padding: 20px; display: flex; flex-direction: column; }
+        .sol h2 { color: #e94560; margin-bottom: 20px; font-size: 18px; }
+
+        .kategori-btn {
+            padding: 12px; margin-bottom: 8px; border-radius: 8px;
+            border: none; background: #0f3460; color: white;
+            cursor: pointer; font-size: 14px; text-align: left;
+            transition: background 0.2s;
+        }
+        .kategori-btn:hover, .kategori-btn.active { background: #e94560; }
+
+        .orta { flex: 1; padding: 25px; overflow-y: auto; }
+        .orta h3 { color: #e94560; margin-bottom: 20px; }
+
+        .urunler-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .urun-kart {
+            background: #16213e;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: border 0.2s, transform 0.2s;
+        }
+        .urun-kart:hover { border-color: #e94560; transform: scale(1.03); }
+        .urun-kart .ad { font-weight: bold; margin-bottom: 6px; }
+        .urun-kart .fiyat { color: #2ecc71; font-size: 15px; }
+
+        .sag { width: 280px; background: #16213e; padding: 20px; display: flex; flex-direction: column; }
+        .sag h3 { color: #e94560; margin-bottom: 15px; }
+
+        .siparis-listesi { flex: 1; overflow-y: auto; }
+        .siparis-item {
+            background: #0f3460;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .toplam {
+            border-top: 2px solid #e94560;
+            padding-top: 15px;
+            margin-top: 15px;
+            font-size: 20px;
+            font-weight: bold;
+            color: #2ecc71;
+        }
+
+        .btn {
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+        .btn:hover { opacity: 0.85; }
+        .btn-kirmizi { background: #e74c3c; color: white; }
+        .btn-gri { background: #555; color: white; }
+
+        .bos-mesaj { color: #888; text-align: center; margin-top: 30px; }
+    </style>
+</head>
+<body>
+
+<div class="sol">
+    <h2>☕ <span th:text="${masa.masaNo}"></span></h2>
+    <button class="kategori-btn active" onclick="kategoriGoster('Sıcak İçecekler', this)">☕ Sıcak İçecekler</button>
+    <button class="kategori-btn" onclick="kategoriGoster('Soğuk İçecekler', this)">🧊 Soğuk İçecekler</button>
+    <button class="kategori-btn" onclick="kategoriGoster('Yiyecekler', this)">🍔 Yiyecekler</button>
+    <button class="kategori-btn" onclick="kategoriGoster('Tatlılar', this)">🍰 Tatlılar</button>
+    <a href="/masalar" style="margin-top: auto; text-align: center; color: #888; text-decoration: none; padding: 10px;">← Geri</a>
+</div>
+
+<div class="orta">
+    <h3 id="kategoriBaslik">☕ Sıcak İçecekler</h3>
+    <div class="urunler-grid" id="urunlerGrid">
+        <div th:each="yemek : ${yemekler}"
+             th:data-kategori="${yemek.kategori}"
+             class="urun-kart"
+             th:onclick="${siparis != null} ? 'urunEkle(' + ${siparis.id} + ', ' + ${yemek.id} + ')' : 'alert(\'Önce sipariş oluşturun!\')'"
+        >
+            <div class="ad" th:text="${yemek.ad}"></div>
+            <div class="fiyat" th:text="${yemek.fiyat} + ' ₺'"></div>
+        </div>
+    </div>
+</div>
+
+<div class="sag">
+    <h3>🧾 Sipariş</h3>
+    <div class="siparis-listesi">
+        <div th:if="${siparis == null}" class="bos-mesaj">
+            Henüz sipariş yok.<br><br>
+            <form th:action="'/masalar/' + ${masa.id} + '/siparis-olustur'" method="post">
+                <button class="btn btn-kirmizi" type="submit">➕ Sipariş Oluştur</button>
+            </form>
+        </div>
+        <div th:if="${siparis != null}">
+            <div class="siparis-item" th:each="urun : ${siparis.yemekler}">
+                <span th:text="${urun.ad}"></span>
+                <span th:text="${urun.fiyat} + ' ₺'"></span>
+            </div>
+        </div>
+    </div>
+    <div th:if="${siparis != null}">
+        <div class="toplam">Toplam: <span th:text="${siparis.toplam}"></span> ₺</div>
+        <form th:action="'/masalar/' + ${masa.id} + '/kapat'" method="post">
+            <input type="hidden" name="siparisId" th:value="${siparis.id}"/>
+            <button class="btn btn-kirmizi" type="submit">✅ Hesabı Kapat</button>

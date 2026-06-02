@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Yemek Formu</title>
+</head>
+<body>
+
+<h1>Yemek Ekle / Güncelle</h1>
+
+<form th:action="@{/yemekler/ekle}" th:object="${yemek}" method="post">
+    <input type="hidden" th:if="${yemek.id != null}"
+           th:name="_method" value="post"/>
+
+    <label>Ad:</label>
+    <input type="text" th:field="*{ad}"/><br/>
+
+    <label>Kategori:</label>
+    <select th:field="*{kategori}">
+        <option value="Sıcak İçecekler">Sıcak İçecekler</option>
+        <option value="Soğuk İçecekler">Soğuk İçecekler</option>
+        <option value="Yiyecekler">Yiyecekler</option>
+        <option value="Tatlılar">Tatlılar</option>
+    </select><br/>
+
+    <label>Fiyat:</label>
+    <input type="number" step="0.01" th:field="*{fiyat}"/><br/>
+
+    <button type="submit">Kaydet</button>
+    <a href="/yemekler">İptal</a>
+</form>
+
+</body>
+</html>
