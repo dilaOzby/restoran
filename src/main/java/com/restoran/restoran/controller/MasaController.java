@@ -57,6 +57,15 @@ public class MasaController {
         return "redirect:/masalar/" + id;
     }
 
+    // YENİ EKLEDİĞİMİZ ÜRÜN İPTAL METODU
+    @PostMapping("/{id}/urun-sil")
+    public String urunSil(@PathVariable Long id,
+                          @RequestParam Long siparisId,
+                          @RequestParam Long yemekId) {
+        siparisService.urunSil(siparisId, yemekId);
+        return "redirect:/masalar/" + id;
+    }
+
     @PostMapping("/{id}/kapat")
     public String masaKapat(@PathVariable Long id,
                             @RequestParam Long siparisId) {
@@ -66,6 +75,7 @@ public class MasaController {
         siparisService.siparisKapat(siparisId);
         return "redirect:/masalar";
     }
+
     @PostMapping("/urun-ekle-ajax")
     @ResponseBody
     public String urunEkleAjax(@RequestBody java.util.Map<String, Long> body) {

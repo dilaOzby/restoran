@@ -1,34 +1,57 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Yemek Formu</title>
+    <title>Yemek Yönetim Paneli - Alesta</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 40px; }
+        .form-container { max-width: 500px; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); margin: 0 auto; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; color: #333; }
+        input[type="text"], input[type="number"], select { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        .btn-grup { display: flex; gap: 10px; margin-top: 20px; }
+        .btn { flex: 1; padding: 12px; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; text-align: center; text-decoration: none; }
+        .btn-kaydet { background-color: #2ecc71; color: white; }
+        .btn-iptal { background-color: #7f8c8d; color: white; }
+        h1 { text-align: center; color: #2c3e50; margin-bottom: 25px; font-size: 24px; }
+    </style>
 </head>
 <body>
 
-<h1>Yemek Ekle / Güncelle</h1>
+<div class="form-container">
+    <h1 th:text="${yemek.id != null} ? 'Yemek Düzenle' : 'Yeni Yemek Ekle'"></h1>
 
-<form th:action="@{/yemekler/ekle}" th:object="${yemek}" method="post">
-    <input type="hidden" th:if="${yemek.id != null}"
-           th:name="_method" value="post"/>
+    <form th:action="${yemek.id != null} ? @{'/yemekler/guncelle/' + ${yemek.id}} : @{/yemekler/ekle}"
+          th:object="${yemek}" method="post">
 
-    <label>Ad:</label>
-    <input type="text" th:field="*{ad}"/><br/>
+        <input type="hidden" th:field="*{id}" />
 
-    <label>Kategori:</label>
-    <select th:field="*{kategori}">
-        <option value="Sıcak İçecekler">Sıcak İçecekler</option>
-        <option value="Soğuk İçecekler">Soğuk İçecekler</option>
-        <option value="Yiyecekler">Yiyecekler</option>
-        <option value="Tatlılar">Tatlılar</option>
-    </select><br/>
+        <div class="form-group">
+            <label>Ürün / Yemek Adı:</label>
+            <input type="text" th:field="*{ad}" required placeholder="Örn: Türk Kahvesi"/>
+        </div>
 
-    <label>Fiyat:</label>
-    <input type="number" step="0.01" th:field="*{fiyat}"/><br/>
+        <div class="form-group">
+            <label>Kategori:</label>
+            <select th:field="*{kategori}">
+                <option value="Sıcak İçecekler">Sıcak İçecekler</option>
+                <option value="Soğuk İçecekler">Soğuk İçecekler</option>
+                <option value="Yiyecekler">Yiyecekler</option>
+                <option value="Tatlılar">Tatlılar</option>
+            </select>
+        </div>
 
-    <button type="submit">Kaydet</button>
-    <a href="/yemekler">İptal</a>
-</form>
+        <div class="form-group">
+            <label>Fiyat (₺):</label>
+            <input type="number" step="0.01" th:field="*{fiyat}" required placeholder="0.00"/>
+        </div>
+
+        <div class="btn-grup">
+            <button type="submit" class="btn btn-kaydet">Kaydet</button>
+            <a href="/yemekler" class="btn btn-iptal">İptal</a>
+        </div>
+    </form>
+</div>
 
 </body>
 </html>

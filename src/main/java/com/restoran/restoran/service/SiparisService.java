@@ -4,11 +4,11 @@ import com.restoran.restoran.model.Masa;
 import com.restoran.restoran.model.Siparis;
 import com.restoran.restoran.model.Yemek;
 import com.restoran.restoran.repository.SiparisRepository;
+import com.restoran.restoran.repository.YemekRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
+import java.util.ArrayList;
 
 @Service
 public class SiparisService {
@@ -17,40 +17,55 @@ public class SiparisService {
     private SiparisRepository siparisRepository;
 
     @Autowired
-    private YemekService yemekService;
+    private YemekRepository yemekRepository;
 
     public Siparis aktifSiparisiGetir(Masa masa) {
+        // Senin repository'ndeki findByMasaAndAktifTrue metodunu kullanıyoruz
         return siparisRepository.findByMasaAndAktifTrue(masa).orElse(null);
     }
 
-    public Siparis siparisOlustur(Masa masa) {
-        Siparis siparis = new Siparis();
-        siparis.setMasa(masa);
-        siparis.setOlusturmaTarihi(LocalDateTime.now());
-        siparis.setAktif(true);
-        siparis.setToplam(0);
-        return siparisRepository.save(siparis);
+    public void siparisOlustur(Masa masa) {
+        Siparis yeniSiparis = new Siparis();
+        yeniSiparis.setMasa(masa);
+        yeniSiparis.setAktif(true); // Sipariş ilk açıldığında aktiftir
+        yeniSiparis.setToplam(0.0);
+        yeniSiparis.setYemekler(new ArrayList<>());
+        siparisRepository.save(yeniSiparis);
     }
 
-    public Siparis urunEkle(Long siparisId, Long yemekId) {
-        Siparis siparis = siparisRepository.findById(siparisId).orElseThrow();
-        Yemek yemek = yemekService.yemekBul(yemekId);
-        siparis.getYemekler().add(yemek);
-        siparis.setToplam(siparis.getToplam() + yemek.getFiyat());
-        return siparisRepository.save(siparis);
+    public void urunEkle(Long siparisId, Long yemekId) {
+        Siparis siparis = siparisRepository.findById(siparisId).orElse(null);
+        Yemek yemek = yemekRepository.findById(yemekId).orElse(null);
+
+        if (siparis != null && yemek != null) {
+            siparis.getYemekler().add(yemek);
+            // Toplam tutarı güncelle
+            siparis.setToplam(siparis.getToplam() + yemek.getFiyat());
+            siparisRepository.save(siparis);
+        }
     }
 
-    public Siparis siparisiGetir(Long id) {
-        return siparisRepository.findById(id).orElseThrow();
-    }
+    public void urunSil(Long siparisId, Long yemekId) {
+        Siparis siparis = siparisRepository.findById(siparisId).orElse(null);
+        Yemek yemek = yemekRepository.findById(yemekId).orElse(null);
 
-    public List<Siparis> tumSiparisler() {
-        return siparisRepository.findAll();
+        if (siparis != null && yemek != null) {
+            // Adisyondaki yemeklerden sadece İLK eşleşeni siler
+            siparis.getYemekler().remove(yemek);
+
+            // Kalan yemeklerin fiyatına göre toplamı yeniden hesapla
+            double yeniToplam = siparis.getYemekler().stream().mapToDouble(Yemek::getFiyat).sum();
+            siparis.setToplam(yeniToplam);
+
+            siparisRepository.save(siparis);
+        }
     }
 
     public void siparisKapat(Long siparisId) {
-        Siparis siparis = siparisRepository.findById(siparisId).orElseThrow();
-        siparis.setAktif(false);
-        siparisRepository.save(siparis);
+        Siparis siparis = siparisRepository.findById(siparisId).orElse(null);
+        if (siparis != null) {
+            siparis.setAktif(false); // Hesap kapatılınca siparişi pasife (false) çekiyoruz
+            siparisRepository.save(siparis);
+        }
     }
 }

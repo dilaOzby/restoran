@@ -1,34 +1,61 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
+<html xmlns:th="http://www.thymeleaf.org" lang="tr">
 <head>
     <meta charset="UTF-8">
-    <title>Yemek Listesi</title>
+    <title>Menü Yönetimi - Alesta</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #f4f4f4; margin: 20px; }
+        .container { background: white; padding: 25px; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+        .ust-alan { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid #eee; padding-bottom: 10px; }
+        h1 { color: #2c3e50; margin: 0; font-size: 24px; }
+        .btn { display: inline-block; padding: 10px 15px; border-radius: 4px; font-weight: bold; text-decoration: none; cursor: pointer; text-align: center; }
+        .btn-ekle { background-color: #3498db; color: white; }
+        .btn-guncelle { background-color: #f1c40f; color: #333; font-size: 13px; padding: 5px 10px; }
+        .btn-sil { background-color: #e74c3c; color: white; font-size: 13px; padding: 5px 10px; margin-left: 5px; }
+        .btn-geri { background-color: #7f8c8d; color: white; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background-color: #34495e; color: white; }
+        tr:hover { background-color: #f9f9f9; }
+        .fiyat-stil { font-weight: bold; color: #2ecc71; }
+    </style>
 </head>
 <body>
 
-<h1>🍕 Yemek Menüsü</h1>
+<div class="container">
+    <div class="ust-alan">
+        <h1>☕ Alesta Menü / Ürün Yönetim Paneli</h1>
+        <div>
+            <a href="/masalar" class="btn btn-geri">← Masa Paneline Git</a>
+            <a href="/yemekler/ekle" class="btn btn-ekle">+ Yeni Ürün Ekle</a>
+        </div>
+    </div>
 
-<a href="/yemekler/ekle">Yeni Yemek Ekle</a>
-
-<table border="1">
-    <tr>
-        <th>ID</th>
-        <th>Ad</th>
-        <th>Kategori</th>
-        <th>Fiyat</th>
-        <th>İşlemler</th>
-    </tr>
-    <tr th:each="yemek : ${yemekler}">
-        <td th:text="${yemek.id}"></td>
-        <td th:text="${yemek.ad}"></td>
-        <td th:text="${yemek.kategori}"></td>
-        <td th:text="${yemek.fiyat}"></td>
-        <td>
-            <a th:href="@{/yemekler/guncelle/{id}(id=${yemek.id})}">Güncelle</a>
-            <a th:href="@{/yemekler/sil/{id}(id=${yemek.id})}">Sil</a>
-        </td>
-    </tr>
-</table>
+    <table>
+        <thead>
+        <tr>
+            <th>ID</th>
+            <th>Ürün Adı</th>
+            <th>Kategori</th>
+            <th>Fiyat</th>
+            <th>İşlemler</th>
+        </tr>
+        </thead>
+        <tbody>
+        <tr th:each="yemek : ${yemekler}">
+            <td th:text="${yemek.id}"></td>
+            <td th:text="${yemek.ad}" style="font-weight: 500;"></td>
+            <td th:text="${yemek.kategori}"></td>
+            <td><span class="fiyat-stil" th:text="${yemek.fiyat}"></span> ₺</td>
+            <td>
+                <a th:href="@{'/yemekler/guncelle/' + ${yemek.id}}" class="btn btn-guncelle">Güncelle</a>
+                <a th:href="@{'/yemekler/sil/' + ${yemek.id}}" class="btn btn-sil"
+                   onclick="return confirm('Bu ürünü menüden silmek istediğinize emin misiniz?');">Sil</a>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+</div>
 
 </body>
 </html>
